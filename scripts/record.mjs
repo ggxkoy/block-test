@@ -20,6 +20,7 @@ const WORKERS = Number(process.env.BC_WORKERS || 1);
 const scenes = {
   drag: { label: '拖消', out: 'bc-drag-clear.mp4' },
   fall: { label: '下落', out: 'bc-falling.mp4' },
+  tower: { label: '塔顶', out: 'bc-tower.mp4' },
 };
 
 const LAUNCH_ARGS = ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'];

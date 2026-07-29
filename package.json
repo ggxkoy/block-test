@@ -14,7 +14,7 @@
     "db:generate": "drizzle-kit generate",
     "render": "node scripts/serve.mjs 4321",
     "record": "node scripts/record.mjs",
-    "test:timeline": "node --test tests/drag-timeline.test.mjs tests/fall-timeline.test.mjs"
+    "test:timeline": "node --test tests/drag-timeline.test.mjs tests/fall-timeline.test.mjs tests/tower-timeline.test.mjs"
   },
   "dependencies": {
     "drizzle-orm": "0.45.2",

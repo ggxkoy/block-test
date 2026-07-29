@@ -1,9 +1,13 @@
 import * as THREE from 'three';
 import { createDragScene } from './scenes/dragClear.js';
 import { createFallScene } from './scenes/falling.js';
+import { createTowerScene } from './scenes/tower.js';
+
+const SCENES = { drag: createDragScene, fall: createFallScene, tower: createTowerScene };
 
 const params = new URLSearchParams(location.search);
-const which = params.get('scene') === 'fall' ? 'fall' : 'drag';
+const requested = params.get('scene');
+const which = requested in SCENES ? requested : 'drag';
 
 const stage = document.getElementById('stage');
 const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: false });
@@ -15,10 +19,10 @@ renderer.toneMapping = THREE.NeutralToneMapping;
 renderer.toneMappingExposure = 1.08;
 stage.appendChild(renderer.domElement);
 
-const built = which === 'fall' ? createFallScene() : createDragScene();
+const built = SCENES[which]();
 const { scene, camera, seek, duration } = built;
 
-document.getElementById('drag-ui').style.display = which === 'drag' ? 'block' : 'none';
+document.getElementById('drag-ui').style.display = which === 'fall' ? 'none' : 'block';
 document.getElementById('fall-ui').style.display = which === 'fall' ? 'block' : 'none';
 
 const dom = {
@@ -32,7 +36,7 @@ const dom = {
 
 function syncUi() {
   const ui = built.ui;
-  if (which === 'drag') {
+  if (which !== 'fall') {
     dom.score.textContent = String(ui.score);
     dom.combo.textContent = String(ui.combo);
     if (ui.banner) {

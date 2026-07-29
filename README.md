@@ -1,13 +1,15 @@
 # Block Crush 3D 测试
 
-BC 测试题资料归档，以及对着两段参考视频还原出来的 Three.js 竖屏成片。
+BC 测试题资料归档、对着两段参考视频还原出来的 Three.js 竖屏成片，以及一版创新方向的成片。
 
 ## 当前交付
 
 - `references/BC测试/`：原始测试规则、两段 3D 参考视频、两段游戏录屏和木块 PNG 素材（视频走 Git LFS）。
-- `render/`：两个 Three.js 场景——`拖消`（8×8 棋盘拖拽消除）和 `下落`（竖井堆叠消除）。
+- `render/`：三个 Three.js 场景——还原版的 `拖消`（8×8 棋盘拖拽消除）、`下落`（竖井堆叠消除），
+  以及创新版的 `塔顶`（棋盘其实是一座木塔的顶面）。
 - `scripts/record.mjs`：无头 Chromium 逐帧渲染 + ffmpeg 编码，产出 1080×1920 / 30fps 的 MP4。
 - `docs/reference-restoration.md`：逐条对照参考视频的还原说明、取色依据和偏差声明。
+- `docs/creative-concept.md`：创新版的创意、分镜和设计理由。
 - `app/BlockCrushExperience.tsx`：更早的一版可交互原型（保留）。
 
 ## 成片
@@ -18,8 +20,9 @@ BC 测试题资料归档，以及对着两段参考视频还原出来的 Three.j
 | --- | --- | --- |
 | `bc-drag-clear.mp4` | `3D参考拖消.mp4` | 1080×1920 / 30fps / 21.5s |
 | `bc-falling.mp4` | `3D参考下落.mp4` | 1080×1920 / 30fps / 21.5s |
+| `bc-tower.mp4` | 创新版（不还原参考） | 1080×1920 / 30fps / 22s |
 
-两条片子的时间线都是脚本化、确定性的：`renderAt(t)` 只依赖 `t`，不依赖上一帧，
+三条片子的时间线都是脚本化、确定性的：`renderAt(t)` 只依赖 `t`，不依赖上一帧，
 所以任意帧可独立复现，录制也因此能按帧区间切给多个进程并行跑。
 
 ## 本地运行
@@ -28,8 +31,10 @@ BC 测试题资料归档，以及对着两段参考视频还原出来的 Three.j
 
 ```bash
 npm install
-npm run render     # 浏览器里实时预览：http://127.0.0.1:4321/render/index.html?scene=drag
-npm run record     # 渲染并编码出 outputs/*.mp4（drag / fall 可单独指定）
+npm run render     # 浏览器里实时预览，scene 可取 drag / fall / tower：
+                   # http://127.0.0.1:4321/render/index.html?scene=tower
+npm run record            # 默认渲染还原版两条
+npm run record -- tower   # 只渲染创新版
 ```
 
 `npm run record` 需要 Chromium 和完整的 ffmpeg，路径可用 `BC_CHROMIUM` / `BC_FFMPEG` 覆盖，
@@ -38,7 +43,7 @@ npm run record     # 渲染并编码出 outputs/*.mp4（drag / fall 可单独指
 ## 验证
 
 ```bash
-npm run test:timeline   # 校验两条时间线：落点合法、真的落到底、消除节奏符合设计
+npm run test:timeline   # 校验三条时间线：落点合法、真的落到底、消除节奏和镜头意图符合设计
 npm run lint
 ```
 
