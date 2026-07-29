@@ -140,6 +140,9 @@ export function BlockCrushExperience() {
     const rimLight = new THREE.PointLight(0xff6b24, 45, 18);
     rimLight.position.set(6, -1, 7);
     scene.add(rimLight);
+    const blastLight = new THREE.PointLight(0xffc25a, 0, 22);
+    blastLight.position.set(0, BOARD_Y, 7);
+    scene.add(blastLight);
 
     const texture = new THREE.TextureLoader().load("/assets/Crush木块.png");
     texture.colorSpace = THREE.SRGBColorSpace;
@@ -154,6 +157,15 @@ export function BlockCrushExperience() {
     // Slightly overlap adjacent cells so the supplied beveled texture forms
     // the separator instead of exposing a wide strip of the board.
     const blockGeometry = new THREE.BoxGeometry(1.02, 1.02, 0.48, 2, 2, 1);
+    const shardGeometry = new THREE.TetrahedronGeometry(0.2, 0);
+    const chipGeometry = new THREE.BoxGeometry(0.24, 0.11, 0.16);
+    const particleMaterial = new THREE.MeshPhysicalMaterial({
+      color: 0xffc95e,
+      roughness: 0.42,
+      metalness: 0.03,
+      emissive: 0xff781d,
+      emissiveIntensity: 0.16,
+    });
 
     const frameMaterial = new THREE.MeshPhysicalMaterial({
       color: 0x665247,
@@ -208,6 +220,11 @@ export function BlockCrushExperience() {
       mesh: THREE.Mesh;
       velocity: THREE.Vector3;
       spin: THREE.Vector3;
+      life: number;
+      baseScale: number;
+    }[] = [];
+    const shockwaves: {
+      mesh: THREE.Mesh<THREE.RingGeometry, THREE.MeshBasicMaterial>;
       life: number;
     }[] = [];
     const timeouts = new Set<number>();
@@ -340,7 +357,35 @@ export function BlockCrushExperience() {
       setBurstLabel(rows.length + cols.length > 1 ? "DOUBLE CLEAR!" : "WOOD BLAST!");
       setCombo((value) => value + 1);
       setScore((value) => value + clearing.size * 40 + 320);
-      playTone(660, 0.24);
+      playTone(180, 0.22);
+      later(() => playTone(760, 0.26), 70);
+
+      const impactCenter = new THREE.Vector3();
+      clearing.forEach((key) => {
+        const mesh = occupied.get(key);
+        if (mesh) impactCenter.add(mesh.position);
+      });
+      impactCenter.divideScalar(Math.max(1, clearing.size));
+      impactCenter.z = 1.12;
+
+      const waveMaterial = new THREE.MeshBasicMaterial({
+        color: 0xffd36d,
+        transparent: true,
+        opacity: 0.9,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+      });
+      const wave = new THREE.Mesh(
+        new THREE.RingGeometry(0.32, 0.52, 48),
+        waveMaterial,
+      );
+      wave.position.copy(impactCenter);
+      wave.scale.setScalar(0.25);
+      scene.add(wave);
+      shockwaves.push({ mesh: wave, life: 1 });
+      blastLight.position.set(impactCenter.x, impactCenter.y, 7);
+      cameraShake = rows.length + cols.length > 1 ? 0.58 : 0.42;
+      blastPulse = 1;
 
       clearing.forEach((key, order) => {
         const mesh = occupied.get(key);
@@ -349,32 +394,47 @@ export function BlockCrushExperience() {
           const origin = mesh.position.clone();
           scene.remove(mesh);
           occupied.delete(key);
-          for (let index = 0; index < 5; index += 1) {
+          for (let index = 0; index < 14; index += 1) {
+            const baseScale = 0.65 + Math.random() * 1.25;
             const fragment = new THREE.Mesh(
-              new THREE.BoxGeometry(0.2, 0.2, 0.2),
-              blockMaterial,
+              Math.random() > 0.38 ? shardGeometry : chipGeometry,
+              particleMaterial,
             );
-            fragment.position.copy(origin);
-            fragment.scale.setScalar(0.7 + Math.random() * 0.8);
+            fragment.position.copy(origin).add(
+              new THREE.Vector3(
+                (Math.random() - 0.5) * 0.48,
+                (Math.random() - 0.5) * 0.48,
+                Math.random() * 0.26,
+              ),
+            );
+            fragment.scale.setScalar(baseScale);
+            fragment.castShadow = true;
             scene.add(fragment);
+            const radial = origin
+              .clone()
+              .sub(impactCenter)
+              .setZ(0)
+              .normalize()
+              .multiplyScalar(0.035 + Math.random() * 0.055);
             particles.push({
               mesh: fragment,
               velocity: new THREE.Vector3(
-                (Math.random() - 0.5) * 0.14,
-                (Math.random() - 0.15) * 0.16,
-                0.08 + Math.random() * 0.13,
-              ),
+                (Math.random() - 0.5) * 0.22,
+                (Math.random() - 0.1) * 0.25,
+                0.16 + Math.random() * 0.28,
+              ).add(radial),
               spin: new THREE.Vector3(
-                Math.random() * 0.18,
-                Math.random() * 0.18,
-                Math.random() * 0.18,
+                (Math.random() - 0.5) * 0.38,
+                (Math.random() - 0.5) * 0.38,
+                (Math.random() - 0.5) * 0.38,
               ),
               life: 1,
+              baseScale,
             });
           }
-        }, order * 28);
+        }, order * 18);
       });
-      later(() => setBurstLabel("NICE MOVE"), 1300);
+      later(() => setBurstLabel("NICE MOVE"), 1450);
     };
 
     const makePiece = (shape: Cell[], slot: number): Piece => {
@@ -389,7 +449,7 @@ export function BlockCrushExperience() {
       );
       shape.forEach((cell) => {
         const mesh = makeBlock(previewMaterial.clone());
-        mesh.scale.setScalar(0.78);
+        mesh.scale.setScalar(0.98);
         mesh.position.set(cell.col * CELL, -cell.row * CELL, 0);
         mesh.userData.pieceIndex = slot;
         group.add(mesh);
@@ -580,6 +640,9 @@ export function BlockCrushExperience() {
     };
 
     let animationFrame = 0;
+    let cameraShake = 0;
+    let blastPulse = 0;
+    let cameraBaseZ = 18;
     const clock = new THREE.Clock();
     const animate = () => {
       const elapsed = clock.getElapsedTime();
@@ -601,16 +664,30 @@ export function BlockCrushExperience() {
       }
       for (let index = particles.length - 1; index >= 0; index -= 1) {
         const particle = particles[index];
-        particle.velocity.y -= 0.0038;
+        particle.velocity.y -= 0.0068;
         particle.mesh.position.add(particle.velocity);
         particle.mesh.rotation.x += particle.spin.x;
         particle.mesh.rotation.y += particle.spin.y;
         particle.mesh.rotation.z += particle.spin.z;
-        particle.life -= 0.018;
-        particle.mesh.scale.setScalar(Math.max(0.01, particle.life));
+        particle.life -= 0.015;
+        particle.mesh.scale.setScalar(
+          Math.max(0.01, particle.baseScale * particle.life),
+        );
         if (particle.life <= 0) {
           scene.remove(particle.mesh);
           particles.splice(index, 1);
+        }
+      }
+      for (let index = shockwaves.length - 1; index >= 0; index -= 1) {
+        const wave = shockwaves[index];
+        wave.life -= 0.032;
+        wave.mesh.scale.setScalar(0.25 + (1 - wave.life) * 8.5);
+        wave.mesh.material.opacity = Math.max(0, wave.life * 0.9);
+        if (wave.life <= 0) {
+          scene.remove(wave.mesh);
+          wave.mesh.geometry.dispose();
+          wave.mesh.material.dispose();
+          shockwaves.splice(index, 1);
         }
       }
       pieces.forEach((piece, index) => {
@@ -619,7 +696,19 @@ export function BlockCrushExperience() {
           piece.group.rotation.z = Math.sin(elapsed * 1.4 + index) * 0.025;
         }
       });
+      blastPulse *= 0.86;
+      blastLight.intensity = blastPulse * 105;
+      rimLight.intensity = 45 + blastPulse * 42;
       rimLight.position.x = Math.sin(elapsed * 0.7) * 6;
+      if (cameraShake > 0.002) {
+        camera.position.x = (Math.random() - 0.5) * cameraShake;
+        camera.position.y = -0.2 + (Math.random() - 0.5) * cameraShake;
+        cameraShake *= 0.86;
+      } else {
+        camera.position.x = 0;
+        camera.position.y = -0.2;
+      }
+      camera.position.z = cameraBaseZ;
       renderer.render(scene, camera);
       animationFrame = requestAnimationFrame(animate);
     };
@@ -629,7 +718,8 @@ export function BlockCrushExperience() {
       const height = mount.clientHeight;
       renderer.setSize(width, height, false);
       camera.aspect = width / height;
-      camera.position.z = Math.max(18, 15.7 / camera.aspect);
+      cameraBaseZ = Math.max(18, 15.7 / camera.aspect);
+      camera.position.z = cameraBaseZ;
       camera.updateProjectionMatrix();
     };
     const observer = new ResizeObserver(resize);
@@ -650,6 +740,9 @@ export function BlockCrushExperience() {
       texture.dispose();
       blockGeometry.dispose();
       blockMaterial.dispose();
+      shardGeometry.dispose();
+      chipGeometry.dispose();
+      particleMaterial.dispose();
       frameMaterial.dispose();
       boardMaterial.dispose();
       tileMaterial.dispose();
