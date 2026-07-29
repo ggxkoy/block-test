@@ -12,7 +12,7 @@ BC 测试题资料归档，以及对着两段参考视频还原出来的 Three.j
 
 ## 成片
 
-`npm run record` 输出到 `outputs/`（已被 .gitignore 忽略）：
+已渲染的成片在 `deliverables/`（走 Git LFS）；`npm run record` 会重新生成到 `outputs/`（被 .gitignore 忽略）。
 
 | 文件 | 对应参考 | 规格 |
 | --- | --- | --- |
