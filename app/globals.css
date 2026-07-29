@@ -20,7 +20,7 @@ body {
 
 body {
   margin: 0;
-  background: #1c0b08;
+  background: #171311;
   color: var(--cream);
   font-family: Arial, Helvetica, sans-serif;
   overscroll-behavior: none;
@@ -37,9 +37,9 @@ button {
   grid-template-columns: minmax(360px, 0.78fr) minmax(440px, 1.22fr);
   overflow: hidden;
   background:
-    radial-gradient(circle at 24% 20%, rgba(255, 190, 76, 0.22), transparent 33%),
-    radial-gradient(circle at 78% 82%, rgba(178, 65, 24, 0.2), transparent 38%),
-    #1c0b08;
+    radial-gradient(circle at 24% 20%, rgba(194, 153, 112, 0.14), transparent 33%),
+    radial-gradient(circle at 78% 82%, rgba(120, 83, 62, 0.16), transparent 38%),
+    #171311;
 }
 
 .game-stage {
@@ -49,9 +49,9 @@ button {
   min-height: 100svh;
   overflow: hidden;
   background:
-    linear-gradient(90deg, rgba(93, 33, 11, 0.18) 1px, transparent 1px) 0 0 / 14px 100%,
-    linear-gradient(118deg, transparent 0 45%, rgba(82, 24, 8, 0.18) 46% 47%, transparent 48%) 0 0 / 190px 90px,
-    linear-gradient(160deg, #d67527 0%, #a9471d 43%, #6f2814 100%);
+    linear-gradient(90deg, rgba(58, 42, 34, 0.18) 1px, transparent 1px) 0 0 / 14px 100%,
+    linear-gradient(118deg, transparent 0 45%, rgba(48, 35, 30, 0.2) 46% 47%, transparent 48%) 0 0 / 190px 90px,
+    linear-gradient(160deg, #806654 0%, #604b3f 43%, #3f312b 100%);
   border-right: 1px solid rgba(255, 224, 154, 0.16);
 }
 
@@ -62,7 +62,7 @@ button {
   opacity: 0.4;
   pointer-events: none;
   background:
-    repeating-radial-gradient(ellipse at 50% 20%, transparent 0 8px, rgba(74, 20, 7, 0.13) 9px 10px, transparent 11px 18px);
+    repeating-radial-gradient(ellipse at 50% 20%, transparent 0 8px, rgba(45, 32, 27, 0.16) 9px 10px, transparent 11px 18px);
   mix-blend-mode: multiply;
 }
 

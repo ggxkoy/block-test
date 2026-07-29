@@ -112,7 +112,7 @@ export function BlockCrushExperience() {
     if (!mount) return;
 
     const scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0x5f260f, 0.028);
+    scene.fog = new THREE.FogExp2(0x342c28, 0.028);
 
     const camera = new THREE.PerspectiveCamera(36, 1, 0.1, 100);
     camera.position.set(0, -0.2, 18);
@@ -151,20 +151,22 @@ export function BlockCrushExperience() {
       clearcoat: 0.35,
       clearcoatRoughness: 0.25,
     });
-    const blockGeometry = new THREE.BoxGeometry(0.9, 0.9, 0.48, 2, 2, 1);
+    // Slightly overlap adjacent cells so the supplied beveled texture forms
+    // the separator instead of exposing a wide strip of the board.
+    const blockGeometry = new THREE.BoxGeometry(1.02, 1.02, 0.48, 2, 2, 1);
 
     const frameMaterial = new THREE.MeshPhysicalMaterial({
-      color: 0x8d3f19,
-      roughness: 0.62,
-      clearcoat: 0.18,
+      color: 0x665247,
+      roughness: 0.76,
+      clearcoat: 0.1,
     });
     const boardMaterial = new THREE.MeshStandardMaterial({
-      color: 0x4b1e12,
-      roughness: 0.84,
+      color: 0x302a27,
+      roughness: 0.9,
     });
     const tileMaterial = new THREE.MeshStandardMaterial({
-      color: 0x5c2817,
-      roughness: 0.76,
+      color: 0x443a34,
+      roughness: 0.88,
     });
 
     const boardBack = new THREE.Mesh(
@@ -186,7 +188,7 @@ export function BlockCrushExperience() {
     for (let row = 0; row < BOARD_SIZE; row += 1) {
       for (let col = 0; col < BOARD_SIZE; col += 1) {
         const tile = new THREE.Mesh(
-          new THREE.BoxGeometry(0.91, 0.91, 0.12),
+          new THREE.BoxGeometry(0.99, 0.99, 0.12),
           tileMaterial,
         );
         tile.position.copy(cellPosition(row, col, 0.13));
