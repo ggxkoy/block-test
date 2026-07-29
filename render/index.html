@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <title>BC 参考效果渲染台</title>
+    <style>
+      @font-face {
+        font-family: 'BCNum';
+        src: local('Arial Rounded MT Bold'), local('Verdana Bold'), local('DejaVu Sans Bold');
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        background: #000;
+        overflow: hidden;
+      }
+      /* 舞台固定 1080×1920，录制时逐帧截这个元素 */
+      #stage {
+        position: relative;
+        width: 1080px;
+        height: 1920px;
+        overflow: hidden;
+        transform-origin: top left;
+      }
+      #stage canvas {
+        position: absolute;
+        inset: 0;
+        width: 1080px;
+        height: 1920px;
+      }
+      #ui {
+        position: absolute;
+        inset: 0;
+        /* canvas 是后插入的，UI 必须显式抬到上层，否则会被整个盖住 */
+        z-index: 2;
+        pointer-events: none;
+        font-family: 'BCNum', 'Verdana', 'DejaVu Sans', sans-serif;
+        font-weight: 700;
+      }
+
+      /* ---- 拖消 UI ---- */
+      .top-btn {
+        position: absolute;
+        top: 34px;
+        width: 92px;
+        height: 92px;
+        border-radius: 26px;
+        background: linear-gradient(#ffd9a2, #f0ac5f);
+        border: 5px solid #a35d24;
+        box-shadow: 0 7px 0 #8d4b1a, 0 12px 18px rgba(40, 15, 0, 0.45);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #8d4b1a;
+        font-size: 46px;
+      }
+      #btn-back {
+        left: 34px;
+      }
+      #btn-settings {
+        right: 34px;
+      }
+
+      .pill {
+        position: absolute;
+        top: 96px;
+        height: 96px;
+        min-width: 268px;
+        border-radius: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 62px;
+        letter-spacing: 1px;
+      }
+      #pill-score {
+        left: 176px;
+        background: linear-gradient(#9464e6, #6b3fc4);
+        border: 6px solid #4d2a94;
+        color: #ffd23f;
+        text-shadow: 0 4px 0 rgba(60, 22, 0, 0.55);
+        box-shadow: 0 8px 0 #3f2179, 0 14px 22px rgba(30, 10, 0, 0.4);
+      }
+      #pill-combo {
+        right: 176px;
+        background: linear-gradient(#7a4c1d, #4f2c0c);
+        border: 6px solid #381d06;
+        color: #ffe9c4;
+        text-shadow: 0 4px 0 rgba(30, 12, 0, 0.6);
+        box-shadow: 0 8px 0 #2e1705, 0 14px 22px rgba(30, 10, 0, 0.4);
+      }
+      .pill-label {
+        position: absolute;
+        top: 52px;
+        width: 268px;
+        text-align: center;
+        font-size: 34px;
+        color: #f0a44a;
+        text-shadow: 0 3px 0 rgba(40, 15, 0, 0.6);
+      }
+      #label-score {
+        left: 176px;
+      }
+      #label-combo {
+        right: 176px;
+      }
+      .crown {
+        position: absolute;
+        top: 44px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 40px;
+      }
+
+      #banner {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 1180px;
+        text-align: center;
+        font-size: 96px;
+        color: #ffd23f;
+        text-shadow: 0 8px 0 #8d3a06, 0 0 40px rgba(255, 190, 90, 0.8);
+        opacity: 0;
+      }
+
+      /* ---- 下落 UI ---- */
+      #fall-ui {
+        display: none;
+      }
+      .fall-stat {
+        position: absolute;
+        top: 58px;
+        font-size: 44px;
+        color: #6d2f0a;
+        text-align: center;
+        line-height: 1.1;
+        text-shadow: 0 2px 0 rgba(255, 226, 180, 0.5);
+      }
+      .fall-stat span {
+        display: block;
+        font-size: 70px;
+        color: #8f3a06;
+        text-shadow: 0 3px 0 rgba(255, 230, 190, 0.55);
+      }
+      #fall-time {
+        left: 46px;
+      }
+      #fall-score {
+        right: 46px;
+      }
+      #fall-banner {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 250px;
+        text-align: center;
+        font-size: 84px;
+        color: #ffe6b0;
+        text-shadow: 0 7px 0 #7a3208, 0 0 40px rgba(255, 200, 110, 0.75);
+        opacity: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="stage">
+      <div id="ui">
+        <div id="drag-ui">
+          <div class="top-btn" id="btn-back">&#10094;</div>
+          <div class="top-btn" id="btn-settings">&#9881;</div>
+          <div class="pill-label" id="label-score"><span class="crown">&#128081;</span></div>
+          <div class="pill-label" id="label-combo">Combo</div>
+          <div class="pill" id="pill-score">6864</div>
+          <div class="pill" id="pill-combo">4100</div>
+          <div id="banner"></div>
+        </div>
+        <div id="fall-ui">
+          <div class="fall-stat" id="fall-time">time<span>180 s</span></div>
+          <div class="fall-stat" id="fall-score">score<span>0</span></div>
+          <div id="fall-banner"></div>
+        </div>
+      </div>
+    </div>
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "/node_modules/three/build/three.module.js",
+          "three/addons/": "/node_modules/three/examples/jsm/"
+        }
+      }
+    </script>
+    <script type="module" src="/render/main.js"></script>
+  </body>
+</html>
