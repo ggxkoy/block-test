@@ -10,6 +10,7 @@ BC 测试题资料归档、对着两段参考视频还原出来的 Three.js 竖�
 - `scripts/record.mjs`：无头 Chromium 逐帧渲染 + ffmpeg 编码，产出 1080×1920 / 30fps 的 MP4。
 - `docs/reference-restoration.md`：逐条对照参考视频的还原说明、取色依据和偏差声明。
 - `docs/creative-concept.md`：创新版的创意、分镜和设计理由。
+- `scripts/color-check.mjs`：画面色彩客观比对工具，用法见 `docs/color-check.md`。
 - `app/BlockCrushExperience.tsx`：更早的一版可交互原型（保留）。
 
 ## 成片
@@ -44,7 +45,11 @@ npm run record -- tower   # 只渲染创新版
 
 ```bash
 npm run test:timeline   # 校验三条时间线：落点合法、真的落到底、消除节奏和镜头意图符合设计
+npm run test:tools      # 校验色彩比对工具本身（含反向用例：颜色没偏时不许误报）
 npm run lint
+
+# 画面和参考图差多少（退出码非 0 表示超差，可直接当验收卡点）
+npm run color-check -- --ref 参考帧.png --test 待检帧.png
 ```
 
 ## 素材说明
